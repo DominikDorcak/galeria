@@ -5,10 +5,10 @@ from flask import Flask, request, send_file
 from flask_restful import Resource, Api, abort
 from resizeimage import resizeimage
 
+# premenna sluziaca na definovanie domovskeho adresara galerie
 HOME = '/home/dominik/Gallery'
 
 app = Flask(__name__)
-app.url_map.strict_slashes = False
 api = Api(app)
 
 
@@ -126,6 +126,7 @@ class Image(Resource):
         h = int(h)
         obrazok = os.path.join(HOME, path)
         ext = os.path.splitext(obrazok)[1]
+        # Temp subor do ktoreho ukladam zmenseny/zvacseny obrazok
         if os.path.exists('./static/temp' + ext):
             os.remove('./static/temp' + ext)
         fd_img = open(obrazok, 'r')
@@ -136,6 +137,8 @@ class Image(Resource):
             if h == 0:
                 temp = resizeimage.resize_width(img, w)
             else:
+                # ak su zadane obidva rozmery pokusim sa co najlepsie obrazok napchat do
+                # zadanej velkosti so zachovanym pomeru stran
                 temp = resizeimage.resize_thumbnail(img, [w, h])
         temp.save('./static/temp' + ext, temp.format)
         return send_file('./static/temp' + ext, mimetype='image/' + ext[1:])
