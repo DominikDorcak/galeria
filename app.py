@@ -1,4 +1,4 @@
-import os, datetime, shutil, PIL.Image
+import os, datetime, shutil, PIL.Image, requests, urllib3, facebook
 
 from werkzeug.utils import secure_filename
 from flask import Flask, request, send_file
@@ -97,18 +97,28 @@ class Gallery(Resource):
         ctype = request.headers['Content-Type']
         if not ctype.split(';')[0] == "multipart/form-data":
             abort(500)
+        #vytiahnutie tokenu z hlavicky
+        bearer, token = request.headers['Authorization'].split(' ')
+        if not bearer == 'Bearer':
+            abort(500)
+        #vytiahnutie udajov o pouzivatelovi z Graph API
+        graph = facebook.GraphAPI(access_token=token, version=2.7)
+        me = graph.request('/me')
         pathf = os.path.join(HOME, path)
         if not os.path.exists(pathf):
             abort(404)
         obr = request.files['image']
         filename = secure_filename(obr.filename)
+        #teraz vsuniem ziskane id na koniec nazvu obrazka pred priponu
+        filename = os.path.splitext(filename)
+        filename = filename[0]+me['id']+filename[1]
         fullpath = os.path.join(pathf, filename)
         obr.save(fullpath)
 
         map = {
             "path": filename,
             "fullpath": os.path.join(path, filename),
-            "name": os.path.splitext(obr.filename)[0],
+            "name": os.path.splitext(filename)[0],
             "modified": datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime('%d.%m.%Y %H:%M:%S')
         }
         list.append(map)
