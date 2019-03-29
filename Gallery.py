@@ -63,7 +63,7 @@ class Gallery(Resource):
         auth = request.headers.get('Authorization')
         # regexom vytiahnem slovo bearer alebo Bearer
         match = re.search('[Bb]earer', auth)
-        if  match == None:
+        if match is None:
             abort(500)
         # token je potom zbytok auth hodnoty, pridane aj vymazanie whitespace znakov pre pripad, ze by to bolo
         # nejakym oddelene
