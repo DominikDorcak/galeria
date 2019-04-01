@@ -18,16 +18,16 @@ class Gallery(Resource):
     def get(self, path):
         json = {}
         gallery = {}
-        gallery['path'] = path
-        gallery['name'] = path.replace('%20',' ')
+        gallery['path'] = path.replace(' ', '%20')
+        gallery['name'] = path.replace('%20', ' ')
         json['gallery'] = gallery
         images = []
-        for root, dirs, files in os.walk(os.path.join(self.HOME, path)):
+        for root, dirs, files in os.walk(os.path.join(self.HOME, gallery['path'])):
             for file in files:
                 image = {}
                 image['path'] = file
                 image['name'] = os.path.splitext(file)[0].replace('%20',' ')
-                image['fullpath'] = os.path.join(path, file)
+                image['fullpath'] = os.path.join(gallery['path'], file)
                 image['modified'] = datetime.datetime.fromtimestamp(
                     os.path.getmtime(os.path.join(self.HOME, image['fullpath']))).strftime(
                     '%d.%m.%Y %H:%M:%S')
@@ -37,13 +37,14 @@ class Gallery(Resource):
 
     def delete(self, path):
         path = os.path.join(self.HOME, path)
+        path = path.replace(' ','%20')
         if os.path.isdir(path):
             shutil.rmtree(path)
-            return
+            return 'OK', 200
         else:
             if os.path.isfile(path):
                 os.remove(path)
-                return
+                return 'OK', 200
             else:
                 abort(404)
 
@@ -51,6 +52,7 @@ class Gallery(Resource):
         json = {}
         list = []
         pathf = os.path.join(self.HOME, path)
+        pathf = pathf.replace(' ', '%20')
         if not os.path.exists(pathf):
             abort(404)
         if len(request.files.values()) < 1:
@@ -75,7 +77,7 @@ class Gallery(Resource):
         except facebook.GraphAPIError:
             abort(401)
         for obr in request.files.values():
-            filename = obr.filename.replace(' ','%20')
+            filename = obr.filename.replace(' ', '%20')
             if '/' in filename:
                 abort(500)
             # teraz vsuniem ziskane id na koniec nazvu obrazka pred priponu
@@ -87,7 +89,7 @@ class Gallery(Resource):
             map = {
                 "path": filename,
                 "fullpath": os.path.join(path, filename),
-                "name": os.path.splitext(filename)[0].replace('%20',' '),
+                "name": os.path.splitext(filename)[0].replace('%20', ' '),
                 "modified": datetime.datetime.fromtimestamp(os.path.getmtime(fullpath)).strftime('%d.%m.%Y %H:%M:%S')
             }
             list.append(map)

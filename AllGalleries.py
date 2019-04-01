@@ -5,7 +5,6 @@ from flask import request
 from flask_restful import Resource, abort
 
 
-
 class AllGalleries(Resource):
 
     HOME = ""

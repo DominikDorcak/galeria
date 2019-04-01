@@ -15,6 +15,7 @@ class Image(Resource):
         self.HOME = HOME
 
     def get(self, wxh, path):
+        path = path.replace(' ', '%20')
         w, h = wxh.split('x')
         w = int(w)
         h = int(h)
